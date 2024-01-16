@@ -1,11 +1,14 @@
 :root {
 	--background-start-rgb: 20, 20, 20;
 	--background-end-rgb: 10, 10, 10;
+
+	--border-radius: 0.5rem;
 }
 
-:where(html, body) {
-	min-width: 100%;
-	min-height: 100%;
+html,
+body {
+	width: 100%;
+	height: 100%;
 }
 
 body {
