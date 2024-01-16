@@ -1,67 +1,31 @@
-import { useDeepCompareEffectForMaps } from '@/hooks/useDeepCompareEffectForMaps'
-import {
-	Attributes,
-	Children,
-	ReactNode,
-	cloneElement,
-	isValidElement,
-	useEffect,
-	useRef,
-	useState,
-} from 'react'
-import { darkThemeStyles as styles } from './darkThemeStyles'
-import s from './index.module.css'
+import { Map as DefaultMap, MapProps } from '@vis.gl/react-google-maps'
+import { ReactNode } from 'react'
 
 declare namespace Map {
-	interface Props extends google.maps.MapOptions {
-		onClick?: (e: google.maps.MapMouseEvent) => void
-		onIdle?: (map: google.maps.Map) => void
+	interface Props extends MapProps {
 		children?: ReactNode
 	}
 }
 
-export function Map({ onClick, onIdle, children, ...options }: Map.Props) {
-	const ref = useRef<HTMLDivElement>(null)
-	const [map, setMap] = useState<google.maps.Map | null>(null)
+const defaultZoomLevel = 3
 
-	useEffect(() => {
-		if (ref.current && !map) {
-			setMap(new window.google.maps.Map(ref.current, { styles }))
-		}
-	}, [ref, map])
-
-	useDeepCompareEffectForMaps(() => {
-		if (map) {
-			map.setOptions(options)
-		}
-	}, [map, options])
-
-	useEffect(() => {
-		if (map) {
-			const clickIdle = ['click', 'idle']
-			clickIdle.forEach(e => google.maps.event.clearListeners(map, e))
-
-			if (onClick) {
-				map.addListener('click', onClick)
-			}
-
-			if (onIdle) {
-				map.addListener('idle', () => onIdle(map))
-			}
-		}
-	}, [map, onClick, onIdle])
-
+export function Map({
+	mapId,
+	zoom,
+	center,
+	disableDefaultUI,
+	children,
+	...props
+}: Map.Props) {
 	return (
-		<div className={s.wrapper}>
-			<div
-				ref={ref}
-				style={{ flexGrow: 1, height: '100%', borderRadius: 'var(--border-radius)' }}
-			/>
-			{Children.map(children, child => {
-				if (isValidElement(child)) {
-					return cloneElement(child, { map } as Attributes)
-				}
-			})}
-		</div>
+		<DefaultMap
+			mapId={mapId ?? process.env.NEXT_PUBLIC_GOOGLE_MAP_ID}
+			zoom={zoom ?? defaultZoomLevel}
+			center={center ?? { lat: 22.54992, lng: 0 }}
+			disableDefaultUI={disableDefaultUI ?? true}
+			{...props}
+		>
+			{children}
+		</DefaultMap>
 	)
 }

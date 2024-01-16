@@ -1,25 +1,9 @@
-import { useEffect, useState } from 'react'
+import { Marker as DefaultMarker, MarkerProps } from '@vis.gl/react-google-maps'
 
-export function Marker(options: google.maps.MarkerOptions) {
-	const [marker, setMarker] = useState<google.maps.Marker | null>(null)
+declare namespace Marker {
+	interface Props extends MarkerProps {}
+}
 
-	useEffect(() => {
-		if (!marker) {
-			setMarker(new google.maps.Marker())
-		}
-
-		return () => {
-			if (marker) {
-				marker.setMap(null)
-			}
-		}
-	}, [marker])
-
-	useEffect(() => {
-		if (marker) {
-			marker.setOptions(options)
-		}
-	}, [marker, options])
-
-	return null
+export function Marker({ ...props }: Marker.Props) {
+	return <DefaultMarker {...props}></DefaultMarker>
 }
