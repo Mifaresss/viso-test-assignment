@@ -1,0 +1,18 @@
+:root {
+	--background-start-rgb: 20, 20, 20;
+	--background-end-rgb: 10, 10, 10;
+}
+
+:where(html, body) {
+	min-width: 100%;
+	min-height: 100%;
+}
+
+body {
+	font-family: system-ui, sans-serif;
+	font-size: 1rem;
+	line-height: 1.4;
+
+	background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
+		rgb(var(--background-start-rgb)) no-repeat;
+}

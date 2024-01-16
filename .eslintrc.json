@@ -1,3 +1,16 @@
 {
-  "extends": "next/core-web-vitals"
+	"extends": "next/core-web-vitals",
+	"rules": {
+		"eol-last": "warn",
+		"quotes": ["error", "single", { "avoidEscape": true }],
+		"jsx-quotes": ["error", "prefer-single"],
+		"no-duplicate-imports": "warn",
+		"semi": ["error", "never"],
+		"object-curly-spacing": ["error", "always"],
+		"array-bracket-spacing": ["error", "never"],
+		"comma-spacing": "error",
+		"no-multiple-empty-lines": ["error", { "max": 1 }],
+		"no-trailing-spaces": "warn",
+		"object-shorthand": ["error", "always"]
+	}
 }
