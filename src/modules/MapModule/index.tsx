@@ -1,37 +1,80 @@
 'use client'
 import { MapMouseEvent } from '@/app/types/MapEventProps'
 import { Map } from '@/components/Map'
-import { Marker } from '@/components/Marker'
-import { APIProvider, MarkerProps } from '@vis.gl/react-google-maps'
+import { Options } from '@/components/Options'
+import {
+	APIProvider,
+	AdvancedMarker,
+	AdvancedMarkerProps,
+	Pin,
+} from '@vis.gl/react-google-maps'
 import { useState } from 'react'
+import s from './index.module.css'
 
 export function MapModule() {
-	const [markers, setMarkers] = useState<MarkerProps[]>([])
-	const [isShowingModal, setIsShowingModal] = useState(false)
+	const [markers, setMarkers] = useState<AdvancedMarkerProps[]>([])
+	const [selectedMarkers, setSelectedMarkers] = useState<number[]>([])
+	const [isDragging, setisDragging] = useState(false) // to avoid library error with unnecessary map click
 
 	const onClickMapHandler = (e: MapMouseEvent) => {
-		console.log('onClickMapHandler')
+		if (isDragging) {
+			setisDragging(false)
+			return
+		}
 		setMarkers([...markers, { position: e.detail.latLng }])
 	}
 
 	const onClickMarkerHandler = (e: google.maps.MapMouseEvent, i: number) => {
-		console.log('onClickMarker')
-		// setIsShowingModal(!isShowingModal)
+		if ('ctrlKey' in e.domEvent && e.domEvent.ctrlKey) {
+			if (selectedMarkers.includes(i)) {
+				setSelectedMarkers(selectedMarkers.filter(m => m !== i))
+			} else {
+				setSelectedMarkers([...selectedMarkers, i])
+			}
+		} else {
+			if (selectedMarkers.includes(i)) {
+				setSelectedMarkers([])
+			} else {
+				setSelectedMarkers([i])
+			}
+		}
+	}
+
+	const onDragEndHandler = (e: google.maps.MapMouseEvent, i: number) => {
+		setMarkers(markers.toSpliced(i, 1, { position: e.latLng }))
 	}
 
 	return (
-		<div style={{ width: '500px', height: '500px', margin: 'auto' }}>
+		<div className={s.mapModule}>
+			<Options
+				selectedMarkers={selectedMarkers}
+				setSelectedMarkers={setSelectedMarkers}
+				markers={markers}
+				setMarkers={setMarkers}
+			/>
 			<APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
 				<Map onClick={onClickMapHandler}>
 					{markers.map((marker, i) => (
-						<Marker
+						<AdvancedMarker
 							key={i}
+							draggable
+							position={marker.position}
 							onClick={e => {
 								onClickMarkerHandler(e, i)
 							}}
-							position={marker.position}
-							draggable
-						/>
+							onDragStart={() => {
+								setisDragging(true)
+							}}
+							onDragEnd={e => {
+								onDragEndHandler(e, i)
+							}}
+						>
+							<Pin
+								background={selectedMarkers.includes(i) ? '#FBBC04' : null}
+								glyphColor={'#000'}
+								borderColor={'#000'}
+							/>
+						</AdvancedMarker>
 					))}
 				</Map>
 			</APIProvider>

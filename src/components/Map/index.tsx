@@ -19,6 +19,7 @@ export function Map({
 }: Map.Props) {
 	return (
 		<DefaultMap
+			style={{ borderRadius: 'var(--border-radius)' }}
 			mapId={mapId ?? process.env.NEXT_PUBLIC_GOOGLE_MAP_ID}
 			zoom={zoom ?? defaultZoomLevel}
 			center={center ?? { lat: 22.54992, lng: 0 }}
