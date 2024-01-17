@@ -1,30 +1,31 @@
+import { db } from '@/firebase'
+import { MARKERS_COLLECTION } from '@/firebase/collections'
+import { Marker } from '@/modules/MapModule'
 import { Button } from '@/ui/Button'
-import { AdvancedMarkerProps } from '@vis.gl/react-google-maps'
+import { deleteDoc, doc } from 'firebase/firestore'
 import { Dispatch, SetStateAction } from 'react'
 import s from './index.module.css'
 
 export declare namespace Options {
 	interface Props {
-		selectedMarkers: number[]
-		setSelectedMarkers: Dispatch<SetStateAction<number[]>>
-		markers: AdvancedMarkerProps[]
-		setMarkers: Dispatch<SetStateAction<AdvancedMarkerProps[]>>
+		selectedMarkers: string[]
+		setSelectedMarkers: Dispatch<SetStateAction<string[]>>
+		markers: Marker[]
 	}
 }
 
-export function Options({
-	selectedMarkers,
-	setSelectedMarkers,
-	markers,
-	setMarkers,
-}: Options.Props) {
-	const deleteOneMarker = () => {
-		setMarkers(prev => prev.toSpliced(selectedMarkers[0], 1))
+export function Options({ selectedMarkers, setSelectedMarkers, markers }: Options.Props) {
+	const deleteOneMarker = async () => {
+		const docRef = doc(db, MARKERS_COLLECTION, selectedMarkers[0])
+		await deleteDoc(docRef)
+		// setMarkers(prev => prev.toSpliced(selectedMarkers[0], 1))
 		setSelectedMarkers([])
 	}
 
-	const deleteAllMarkers = () => {
-		setMarkers([])
+	const deleteAllMarkers = async () => {
+		const docRefs = markers.map(m => doc(db, MARKERS_COLLECTION, m.id))
+		await Promise.all(docRefs.map(docRef => deleteDoc(docRef)))
+		// delete setMarkers([])
 	}
 
 	return (
