@@ -1,11 +1,11 @@
 'use client'
-import { MapMouseEvent } from '@/app/types/MapEventProps'
 import { Map } from '@/components/Map'
 import { Options } from '@/components/Options'
 import {
 	APIProvider,
 	AdvancedMarker,
 	AdvancedMarkerProps,
+	MapProps,
 	Pin,
 } from '@vis.gl/react-google-maps'
 import { useState } from 'react'
@@ -16,7 +16,7 @@ export function MapModule() {
 	const [selectedMarkers, setSelectedMarkers] = useState<number[]>([])
 	const [isDragging, setisDragging] = useState(false) // to avoid library error with unnecessary map click
 
-	const onClickMapHandler = (e: MapMouseEvent) => {
+	const onClickMapHandler: MapProps['onClick'] = e => {
 		if (isDragging) {
 			setisDragging(false)
 			return
