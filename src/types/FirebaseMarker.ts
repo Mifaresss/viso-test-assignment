@@ -4,10 +4,8 @@ export type FirebaseMarker = {
 		_lat: number
 		_long: number
 	}
-	timestamp: {
-		seconds: number
-		nanoseconds: number
-	}
+	timestamp: number
+	next?: string
 }
 
 export type FirebaseMarkerNew = Partial<FirebaseMarker>

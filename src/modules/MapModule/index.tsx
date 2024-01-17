@@ -15,7 +15,11 @@ import { addDoc, collection, doc, onSnapshot, setDoc } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import s from './index.module.css'
 
-export type Marker = AdvancedMarkerProps & { id: string }
+export type Marker = AdvancedMarkerProps & {
+	id: string
+	timestamp: number
+	next?: string
+}
 
 export function MapModule() {
 	const [markers, setMarkers] = useState<Marker[]>([])
@@ -32,6 +36,8 @@ export function MapModule() {
 				const newMarkers: Marker[] = fromResponse.map(doc => ({
 					id: doc.id,
 					position: { lat: doc.location._lat, lng: doc.location._long },
+					timestamp: doc.timestamp,
+					next: doc.next,
 				}))
 				setMarkers(newMarkers)
 			}),
@@ -49,17 +55,10 @@ export function MapModule() {
 				_lat: e.detail.latLng?.lat as number,
 				_long: e.detail.latLng?.lng as number,
 			},
-			timestamp: {
-				seconds: new Date().getTime(),
-				nanoseconds: new Date().getTime(),
-			},
+			timestamp: new Date().getTime(),
 		}
 		await addDoc(collectionRef, payload)
 	}
-
-	useEffect(() => {
-		console.log('markers:', markers)
-	}, [markers])
 
 	const onClickMarkerHandler = (e: google.maps.MapMouseEvent, id: string) => {
 		if ('ctrlKey' in e.domEvent && e.domEvent.ctrlKey) {
@@ -81,10 +80,7 @@ export function MapModule() {
 		const docRef = doc(db, MARKERS_COLLECTION, id)
 		const payload: FirebaseMarkerNew = {
 			location: { _lat: e.latLng?.lat() as number, _long: e.latLng?.lng() as number },
-			timestamp: {
-				seconds: new Date().getTime(),
-				nanoseconds: new Date().getTime(),
-			},
+			timestamp: new Date().getTime(),
 		}
 		setDoc(docRef, payload)
 	}
@@ -98,30 +94,49 @@ export function MapModule() {
 			/>
 			<APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}>
 				<Map onClick={onClickMapHandler}>
-					{markers.map(marker => (
-						<AdvancedMarker
-							key={marker.id}
-							draggable
-							position={marker.position}
-							onClick={e => {
-								onClickMarkerHandler(e, marker.id)
-							}}
-							onDragStart={() => {
-								setisDragging(true)
-							}}
-							onDragEnd={e => {
-								onDragEndHandler(e, marker.id)
-							}}
-						>
-							<Pin
-								background={
-									selectedMarkerIds.includes(marker.id) ? '#FBBC04' : null
+					{markers.map((marker, i) => {
+						const prevMarker = markers[i - 1]
+						if (prevMarker) {
+							if (!prevMarker.next) {
+								const docRef = doc(db, MARKERS_COLLECTION, prevMarker.id)
+								const payload: FirebaseMarker = {
+									id: prevMarker.id,
+									location: {
+										_lat: prevMarker.position?.lat as number,
+										_long: prevMarker.position?.lng as number,
+									},
+									timestamp: prevMarker.timestamp,
+									next: marker.id,
 								}
-								glyphColor={'#000'}
-								borderColor={'#000'}
-							/>
-						</AdvancedMarker>
-					))}
+								setDoc(docRef, payload)
+							}
+						}
+
+						return (
+							<AdvancedMarker
+								key={marker.id}
+								draggable
+								position={marker.position}
+								onClick={e => {
+									onClickMarkerHandler(e, marker.id)
+								}}
+								onDragStart={() => {
+									setisDragging(true)
+								}}
+								onDragEnd={e => {
+									onDragEndHandler(e, marker.id)
+								}}
+							>
+								<Pin
+									background={
+										selectedMarkerIds.includes(marker.id) ? '#FBBC04' : null
+									}
+									glyphColor={'#000'}
+									borderColor={'#000'}
+								/>
+							</AdvancedMarker>
+						)
+					})}
 				</Map>
 			</APIProvider>
 		</div>
